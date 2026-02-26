@@ -8,100 +8,77 @@ const refreshButton = document.getElementById("refreshButton");
 // Topic queries optimized for HN Algolia (no boolean operators)
 const aiTopics = [
   // Core AI Labs
-  { name: "OpenAI", query: "OpenAI ChatGPT GPT-4 GPT-5" },
-  { name: "Anthropic", query: "Anthropic Claude 3 Claude 4" },
-  { name: "Google AI", query: "Google Gemini DeepMind" },
-  { name: "Microsoft AI", query: "Microsoft Copilot Azure OpenAI" },
-  { name: "Meta AI", query: "Meta Llama Llama 3 Llama 4" },
-  { name: "Hugging Face", query: "Hugging Face Transformers" },
+  { name: "OpenAI", query: "OpenAI ChatGPT GPT-4 GPT-5 GPT-6 DALL-E Whisper Codex" },
+  { name: "Anthropic", query: "Anthropic Claude 3 Claude 4 Claude 5" },
+  { name: "Google AI", query: "Google Gemini DeepMind Bard PaLM" },
+  { name: "Microsoft AI", query: "Microsoft Copilot Azure OpenAI Bing Chat" },
+  { name: "Meta AI", query: "Meta Llama Llama 2 Llama 3 Llama 4 Galactica" },
+  { name: "Hugging Face", query: "Hugging Face Transformers Diffusers Datasets" },
 
-  // Other Major AI Companies
+  // Other Major AI Companies / Startups
   { name: "Mistral AI", query: "Mistral Mixtral" },
   { name: "Cohere", query: "Cohere Command R" },
   { name: "Perplexity", query: "Perplexity AI" },
   { name: "xAI", query: "xAI Grok" },
-  { name: "Stability AI", query: "Stability AI Stable Diffusion" },
+  { name: "Stability AI", query: "Stability AI Stable Diffusion SDXL MidJourney" },
   { name: "Inflection AI", query: "Inflection Pi AI" },
+  { name: "Runway", query: "Runway AI video editing Gen-2" },
+  { name: "Claude Labs", query: "Claude Claude AI" },
+  { name: "Replit AI", query: "Replit Ghostwriter" },
+  { name: "MosaicML", query: "MosaicML models" },
+  { name: "AI21 Labs", query: "AI21 Studio Jurassic-2 Jurassic-1" },
 
   // Infrastructure / Hardware
-  { name: "NVIDIA AI", query: "NVIDIA AI TensorRT NIM" },
+  { name: "NVIDIA AI", query: "NVIDIA AI TensorRT NIM DGX H100" },
   { name: "AMD AI", query: "AMD MI300 AI" },
+  { name: "Intel AI", query: "Intel AI Habana Gaudi" },
 
   // Cloud AI Platforms
-  { name: "Amazon AI", query: "AWS Bedrock Amazon AI" }
+  { name: "Amazon AI", query: "AWS Bedrock Amazon AI SageMaker" },
+  { name: "Google Cloud AI", query: "Vertex AI Google AI Cloud" },
+  { name: "Microsoft Azure AI", query: "Azure AI OpenAI Service Cognitive Services" },
+
+  // Emerging / Niche AI Startups
+  { name: "Character AI", query: "Character AI Chatbot personalities" },
+  { name: "Copy.ai", query: "Copy AI content writing" },
+  { name: "Jasper AI", query: "Jasper AI content marketing" },
+  { name: "Reimagine AI", query: "Reimagine AI image generation" },
+  { name: "Luminous AI", query: "Luminous AI models" }
 ];
 
+// Keywords optimized for comprehensive AI news
 const keywords = [
-  // Launch / Release
-  "launch",
-  "launched",
-  "launching",
-  "release",
-  "released",
-  "releasing",
-  "rollout",
-  "rolled out",
-  "introduce",
-  "introduced",
-  "introducing",
-  "announce",
-  "announced",
-  "announcement",
-  "debut",
-  "unveil",
-  "unveiled",
-  "now available",
-  "go live",
-  "live now",
-  "early access",
-  "public preview",
-  "beta",
-  "open beta",
-  "general availability",
-  "GA",
-  "shipping",
+  // Core AI models & companies
+  "GPT", "GPT-4", "GPT-5", "Claude", "Claude 3", "Claude 4",
+  "Gemini", "DeepMind", "Copilot", "Llama", "Llama 3", "Llama 4",
+  "Transformers", "Mixtral", "Command R", "Grok", "Stable Diffusion",
+  "Pi AI", "TensorRT", "NIM", "MI300", "Bedrock", "Anthropic",
+  "OpenAI", "Google AI", "Microsoft AI", "Meta AI", "Hugging Face",
+  "Mistral AI", "Cohere", "Perplexity", "xAI", "Stability AI", "Inflection AI",
+  "NVIDIA AI", "AMD AI", "Amazon AI", "AWS",
 
-  // Updates / Versions (often tied to releases)
-  "new version",
-  "version",
-  "v2",
-  "v3",
-  "update",
-  "upgraded",
-  "upgrade",
-  "redesign",
-  "revamp",
+  // AI general concepts
+  "AI", "artificial intelligence", "machine learning", "deep learning",
+  "reinforcement learning", "unsupervised learning", "supervised learning",
+  "neural network", "foundation model", "LLM", "large language model",
+  "multimodal model", "chatbot", "text-to-image", "text-to-speech",
+  "generative AI", "predictive AI", "automation", "AI assistant",
+  "AI tool", "AI platform", "AI infrastructure", "AI hardware",
 
-  // Deprecation / Removal
-  "deprecate",
-  "deprecated",
-  "deprecating",
-  "retire",
-  "retired",
-  "retiring",
-  "end of life",
-  "EOL",
-  "sunset",
-  "sunsetting",
-  "phase out",
-  "phasing out",
-  "discontinue",
-  "discontinued",
-  "shut down",
-  "shutdown",
-  "winding down",
-  "wind down",
-  "closing",
-  "close",
-  "closed",
-  "termination",
-  "terminate",
-  "terminated",
-  "support ending",
-  "end support",
-  "no longer supported",
-  "service ending",
-  "cease operations"
+  // Popular AI tasks & applications
+  "natural language processing", "computer vision", "image generation",
+  "speech synthesis", "text summarization", "code generation",
+  "AI writing assistant", "AI research", "AI optimization", "AI simulation",
+  "self-supervised learning", "transfer learning", "reinforcement learning",
+  "conversational AI", "AI adoption", "AI deployment", "AI ethics",
+  "AI safety", "AI alignment", "responsible AI", "AI governance",
+
+  // Trending AI buzzwords & concepts
+  "generative model", "diffusion model", "transformer architecture",
+  "multimodal AI", "real-time AI", "AI accelerator", "AI chip", "AI compute",
+  "predictive analytics", "AI automation", "human-in-the-loop", "AI innovation",
+  "AI startup", "AI company", "AI ecosystem", "AI strategy", "AI breakthroughs",
+  "open source AI", "AI community", "AI toolkit", "AI framework"
 ];
 
 let currentArticles = [];
