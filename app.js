@@ -71,7 +71,9 @@ const keywords = [
   "AI writing assistant", "AI research", "AI optimization", "AI simulation",
   "self-supervised learning", "transfer learning", "reinforcement learning",
   "conversational AI", "AI adoption", "AI deployment", "AI ethics",
-  "AI safety", "AI alignment", "responsible AI", "AI governance",
+  "AI safety", "AI alignment", "responsible AI", "AI governance", 
+  
+  "cybersecurity", "cyber security", "AI security", "AI in cybersecurity", "adversarial attacks",
 
   // Trending AI buzzwords & concepts
   "generative model", "diffusion model", "transformer architecture",
