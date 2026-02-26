@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Launch & Deprecation News</title>
+
+    <!-- Bootstrap core (for responsive grid + utilities) -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        crossorigin="anonymous"
+    >
+
+    <!-- Neon-friendly font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        referrerpolicy="no-referrer"
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-header py-4">
+            <div class="container">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <div class="badge-live mb-2">
+                            <span class="badge-live-dot"></span>
+                            <span>Real‑time AI Launch Radar</span>
+                        </div>
+                        <h1 class="app-title">
+                            <span class="neon">AI</span> Launch &amp; Deprecation News
+                        </h1>
+                        <p class="app-subtitle">
+                            Tracking <strong>launches</strong>, <strong>releases</strong>, and <strong>deprecations</strong> across top AI sources.
+                        </p>
+                    </div>
+                    <div class="header-meta">
+                        <button id="refreshButton" class="btn btn-sm btn-neon mb-2">
+                            <i class="fa-solid fa-rotate-right me-1"></i>
+                            Refresh now
+                        </button>
+                        <div id="lastUpdated"></div>
+                    </div>
+                </div>
+
+                <div class="row mt-4 g-3 align-items-center">
+                    <div class="col-md-8">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input
+                                type="text"
+                                id="searchInput"
+                                class="search-input"
+                                placeholder="Search in titles & descriptions (e.g. GPT-5, LLaMA, deprecation)..."
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div id="statsBadge" class="stats-badge small">
+                            <i class="fa-regular fa-newspaper"></i>
+                            <span>Loading articles…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow-1">
+            <div class="main-inner container">
+                <div id="statusMessage" class="status-message mb-3">
+                    <span class="icon"><i class="fa-solid fa-sparkles"></i></span>
+                    <span>Initializing feed monitor…</span>
+                </div>
+                <div class="news-container" id="news-container"></div>
+            </div>
+        </main>
+
+        <footer class="app-footer py-3">
+            <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                <p class="mb-0">
+                    Powered by public RSS feeds
+                    <span class="text-light-emphasis">from OpenAI, Hugging Face &amp; VentureBeat</span>
+                    via
+                    <a href="https://api.allorigins.win" target="_blank" rel="noreferrer">AllOrigins proxy</a>.
+                </p>
+                <p class="mb-0">
+                    Front‑end only • Safe to deploy on
+                    <a href="https://vercel.com" target="_blank" rel="noreferrer">Vercel</a>.
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

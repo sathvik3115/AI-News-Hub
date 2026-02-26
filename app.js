@@ -1,0 +1,515 @@
+const newsContainer = document.getElementById("news-container");
+const searchInput = document.getElementById("searchInput");
+const statusMessage = document.getElementById("statusMessage");
+const lastUpdatedEl = document.getElementById("lastUpdated");
+const statsBadgeEl = document.getElementById("statsBadge");
+const refreshButton = document.getElementById("refreshButton");
+
+// Topic queries optimized for HN Algolia (no boolean operators)
+const aiTopics = [
+  // Core AI Labs
+  { name: "OpenAI", query: "OpenAI ChatGPT GPT-4 GPT-5" },
+  { name: "Anthropic", query: "Anthropic Claude 3 Claude 4" },
+  { name: "Google AI", query: "Google Gemini DeepMind" },
+  { name: "Microsoft AI", query: "Microsoft Copilot Azure OpenAI" },
+  { name: "Meta AI", query: "Meta Llama Llama 3 Llama 4" },
+  { name: "Hugging Face", query: "Hugging Face Transformers" },
+
+  // Other Major AI Companies
+  { name: "Mistral AI", query: "Mistral Mixtral" },
+  { name: "Cohere", query: "Cohere Command R" },
+  { name: "Perplexity", query: "Perplexity AI" },
+  { name: "xAI", query: "xAI Grok" },
+  { name: "Stability AI", query: "Stability AI Stable Diffusion" },
+  { name: "Inflection AI", query: "Inflection Pi AI" },
+
+  // Infrastructure / Hardware
+  { name: "NVIDIA AI", query: "NVIDIA AI TensorRT NIM" },
+  { name: "AMD AI", query: "AMD MI300 AI" },
+
+  // Cloud AI Platforms
+  { name: "Amazon AI", query: "AWS Bedrock Amazon AI" }
+];
+
+const keywords = [
+  // Launch / Release
+  "launch",
+  "launched",
+  "launching",
+  "release",
+  "released",
+  "releasing",
+  "rollout",
+  "rolled out",
+  "introduce",
+  "introduced",
+  "introducing",
+  "announce",
+  "announced",
+  "announcement",
+  "debut",
+  "unveil",
+  "unveiled",
+  "now available",
+  "go live",
+  "live now",
+  "early access",
+  "public preview",
+  "beta",
+  "open beta",
+  "general availability",
+  "GA",
+  "shipping",
+
+  // Updates / Versions (often tied to releases)
+  "new version",
+  "version",
+  "v2",
+  "v3",
+  "update",
+  "upgraded",
+  "upgrade",
+  "redesign",
+  "revamp",
+
+  // Deprecation / Removal
+  "deprecate",
+  "deprecated",
+  "deprecating",
+  "retire",
+  "retired",
+  "retiring",
+  "end of life",
+  "EOL",
+  "sunset",
+  "sunsetting",
+  "phase out",
+  "phasing out",
+  "discontinue",
+  "discontinued",
+  "shut down",
+  "shutdown",
+  "winding down",
+  "wind down",
+  "closing",
+  "close",
+  "closed",
+  "termination",
+  "terminate",
+  "terminated",
+  "support ending",
+  "end support",
+  "no longer supported",
+  "service ending",
+  "cease operations"
+];
+
+let currentArticles = [];
+let lastUpdatedTimestamp = null;
+let isRefreshing = false;
+const topicFailureCounts = new Map();
+
+// ---------------------------
+// Utility helpers
+// ---------------------------
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchTextWithRetries(url, maxAttempts = 3) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return await response.text();
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts) {
+        await sleep(400 * attempt);
+      }
+    }
+  }
+
+  throw lastError || new Error("Unknown fetch error");
+}
+
+async function fetchJsonWithRetries(url, maxAttempts = 3) {
+  const text = await fetchTextWithRetries(url, maxAttempts);
+  return JSON.parse(text);
+}
+
+function normalizeWhitespace(str) {
+  return (str || "").replace(/\s+/g, " ").trim();
+}
+
+function stripHtml(input) {
+  return (input || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function truncateText(str, maxLength) {
+  if (!str) return "";
+  if (str.length <= maxLength) return str;
+  const truncated = str.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+  const base = lastSpace > 40 ? truncated.slice(0, lastSpace) : truncated;
+  return base.trim() + "…";
+}
+
+function extractHostName(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "news.ycombinator.com";
+  }
+}
+
+// ---------------------------
+// UI helpers
+// ---------------------------
+
+function setStatus(message, type = "info") {
+  if (!statusMessage) return;
+
+  statusMessage.classList.remove("status-loading", "status-error", "status-empty");
+
+  if (!message) {
+    statusMessage.innerHTML = "";
+    return;
+  }
+
+  let icon = '<i class="fa-solid fa-circle-info"></i>';
+  if (type === "loading") {
+    icon = '<i class="fa-solid fa-arrows-rotate fa-spin"></i>';
+    statusMessage.classList.add("status-loading");
+  } else if (type === "error") {
+    icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+    statusMessage.classList.add("status-error");
+  } else if (type === "empty") {
+    icon = '<i class="fa-regular fa-face-sleeping"></i>';
+    statusMessage.classList.add("status-empty");
+  }
+
+  statusMessage.innerHTML = `<span class="icon">${icon}</span><span>${message}</span>`;
+}
+
+function updateMetaInfo(visibleArticles) {
+  const totalVisible = visibleArticles.length;
+  const totalAll = currentArticles.length;
+
+  if (lastUpdatedEl && lastUpdatedTimestamp) {
+    const d = new Date(lastUpdatedTimestamp);
+    lastUpdatedEl.textContent = `Last updated ${d.toLocaleString()}`;
+  }
+
+  if (statsBadgeEl) {
+    if (!totalAll) {
+      statsBadgeEl.innerHTML = `
+        <i class="fa-regular fa-newspaper"></i>
+        <span>No articles yet</span>
+      `;
+      return;
+    }
+
+    if (totalVisible === totalAll) {
+      statsBadgeEl.innerHTML = `
+        <i class="fa-regular fa-newspaper"></i>
+        <span>${totalVisible} articles across ${aiTopics.length} topics</span>
+      `;
+    } else {
+      statsBadgeEl.innerHTML = `
+        <i class="fa-regular fa-filter"></i>
+        <span>${totalVisible} / ${totalAll} articles match your search</span>
+      `;
+    }
+  }
+}
+
+function showLoadingSkeletons(desiredCount) {
+  if (!newsContainer) return;
+  newsContainer.innerHTML = "";
+
+  const skeletonCount = Math.max(6, Math.min(desiredCount || 12, 30));
+  for (let i = 0; i < skeletonCount; i++) {
+    const card = document.createElement("div");
+    card.className = "news-card skeleton-card";
+    card.innerHTML = `
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text short"></div>
+      <div class="skeleton skeleton-pill"></div>
+    `;
+    newsContainer.appendChild(card);
+  }
+}
+
+// ---------------------------
+// API fetch + parse
+// ---------------------------
+
+function buildTopicApiUrl(query) {
+  return `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&hitsPerPage=100`;
+}
+
+function extractTopicItemsFromJson(hits, topicName) {
+  const filtered = [];
+
+  (hits || []).forEach((hit) => {
+    const title = normalizeWhitespace(hit?.title || hit?.story_title || "");
+    if (!title) return;
+
+    const link = normalizeWhitespace(hit?.url || hit?.story_url || `https://news.ycombinator.com/item?id=${hit?.objectID || ""}`);
+    const rawDescription = hit?.story_text || hit?.comment_text || title;
+    const description = truncateText(normalizeWhitespace(stripHtml(rawDescription)), 260);
+
+    const content = `${title} ${description}`.toLowerCase();
+    const matchesKeyword =
+      keywords.some((k) => content.includes(k)) ||
+      content.includes("announce") ||
+      content.includes("introducing") ||
+      content.includes("available") ||
+      content.includes("preview");
+
+    if (!matchesKeyword) return;
+
+    filtered.push({
+      title,
+      link,
+      description,
+      source: `${topicName} • ${extractHostName(link)}`,
+      publishedAt: hit?.created_at || "",
+    });
+  });
+
+  return filtered;
+}
+
+async function fetchTopicNews(topic) {
+  let lastError = null;
+
+  for (const queryVariant of [topic.query, `${topic.query} announcement`, `${topic.query} sunset`]) {
+    try {
+      const payload = await fetchJsonWithRetries(buildTopicApiUrl(queryVariant), 2);
+      const articles = extractTopicItemsFromJson(payload?.hits, topic.name);
+      topicFailureCounts.delete(topic.name);
+      return articles;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  const failures = (topicFailureCounts.get(topic.name) || 0) + 1;
+  topicFailureCounts.set(topic.name, failures);
+  if (failures === 1 || failures % 5 === 0) {
+    const reason = lastError && lastError.message ? lastError.message : String(lastError || "Unknown error");
+    console.warn(`Skipping topic after retries (${topic.name}): ${reason}`);
+  }
+
+  return [];
+}
+
+// Fetch all topics with controlled concurrency to avoid request spikes
+async function fetchAllFeeds() {
+  const concurrency = 4;
+  const results = new Array(aiTopics.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < aiTopics.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await fetchTopicNews(aiTopics[index]);
+    }
+  }
+
+  const workers = [];
+  for (let i = 0; i < Math.min(concurrency, aiTopics.length); i++) {
+    workers.push(worker());
+  }
+
+  await Promise.all(workers);
+
+  const merged = results.flat();
+
+  const seen = new Set();
+  const deduped = [];
+  for (const article of merged) {
+    const key = `${article.link || ""}::${(article.title || "").toLowerCase()}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(article);
+    }
+  }
+
+  // Sort newest first when we have a parseable date
+  deduped.sort((a, b) => {
+    const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    return bDate - aDate;
+  });
+
+  return deduped;
+}
+
+// ---------------------------
+// Render
+// ---------------------------
+
+function renderNews(articles) {
+  if (!newsContainer) return;
+  newsContainer.innerHTML = "";
+
+  if (!articles.length) {
+    setStatus(
+      "No relevant launch/deprecation news loaded right now. Try refreshing in a minute.",
+      "empty"
+    );
+    updateMetaInfo([]);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  articles.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "news-card";
+
+    const safeTitle = item.title.split("Show HN: ")[1] || item.title.split("Launch HN: ")[1] || item.title.split("Ask HN: ")[1] || item.title || "Untitled article";
+    const safeDescription = item.description || "";
+    const safeLink = item.link || "#";
+    const safeSource = item.source || "Unknown source";
+
+    const publishedLabel = item.publishedAt
+      ? new Date(item.publishedAt).toLocaleString()
+      : "Date not provided";
+
+    card.innerHTML = `
+      <h3>
+        <a href="${safeLink}" target="_blank" rel="noreferrer">
+          ${safeTitle}
+        </a>
+      </h3>
+      <p>${safeDescription}</p>
+
+      <div class="news-meta">
+        <span class="news-source-pill">
+          <i class="fa-solid fa-brain"></i>
+          <span>${safeSource}</span>
+        </span>
+        <span class="news-date">
+          <i class="fa-regular fa-clock me-1"></i>${publishedLabel}
+        </span>
+      </div>
+
+      <a class="news-link" href="${safeLink}" target="_blank" rel="noreferrer">
+        <span>View article</span>
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    `;
+
+    fragment.appendChild(card);
+  });
+
+  newsContainer.appendChild(fragment);
+  updateMetaInfo(articles);
+}
+
+// ---------------------------
+// Main refresh flow
+// ---------------------------
+
+async function refreshFeeds(showSkeletons = true) {
+  if (isRefreshing) return;
+  isRefreshing = true;
+
+  if (refreshButton) {
+    refreshButton.disabled = true;
+  }
+
+  if (showSkeletons) {
+    showLoadingSkeletons(aiTopics.length * 2);
+    setStatus("Loading latest AI launch & deprecation news…", "loading");
+  } else {
+    setStatus("Refreshing AI launch & deprecation news…", "loading");
+  }
+
+  try {
+    const articles = await fetchAllFeeds();
+    currentArticles = articles;
+    lastUpdatedTimestamp = Date.now();
+
+    if (!articles.length) {
+      newsContainer.innerHTML = "";
+      setStatus("No relevant news found. Try again in a bit.", "empty");
+      updateMetaInfo([]);
+    } else {
+      renderNews(articles);
+      setStatus("", "info");
+    }
+  } catch (err) {
+    console.error("Failed to refresh feeds", err);
+
+    setStatus("Unable to load news right now. Please try refreshing later.", "error");
+  } finally {
+    isRefreshing = false;
+    if (refreshButton) {
+      refreshButton.disabled = false;
+    }
+  }
+}
+
+async function initialize() {
+  // First load: show skeletons based on topics, then fetch in parallel
+  showLoadingSkeletons(aiTopics.length * 2);
+  setStatus("Loading latest AI launch & deprecation news…", "loading");
+  await refreshFeeds(false);
+}
+
+// ---------------------------
+// Search + interactions
+// ---------------------------
+
+// Client-side search over the in-memory articles list
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase().trim();
+
+    if (!query) {
+      renderNews(currentArticles);
+      return;
+    }
+
+    const filtered = currentArticles.filter((article) => {
+      const text = `${article.title || ""} ${article.description || ""} ${article.source || ""}`.toLowerCase();
+      return text.includes(query);
+    });
+
+    renderNews(filtered);
+  });
+}
+
+// Manual refresh button to force a live update
+if (refreshButton) {
+  refreshButton.addEventListener("click", () => {
+    refreshFeeds(true);
+  });
+}
+
+// Kick everything off
+initialize();
