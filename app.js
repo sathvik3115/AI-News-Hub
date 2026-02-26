@@ -5,45 +5,45 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 const statsBadgeEl = document.getElementById("statsBadge");
 const refreshButton = document.getElementById("refreshButton");
 
-// Topic queries optimized for HN Algolia (no boolean operators)
+// Topic queries optimized for HN Algolia using queryVariants
 const aiTopics = [
   // Core AI Labs
-  { name: "OpenAI", query: "OpenAI ChatGPT GPT-4 GPT-5 GPT-6 DALL-E Whisper Codex" },
-  { name: "Anthropic", query: "Anthropic Claude 3 Claude 4 Claude 5" },
-  { name: "Google AI", query: "Google Gemini DeepMind Bard PaLM" },
-  { name: "Microsoft AI", query: "Microsoft Copilot Azure OpenAI Bing Chat" },
-  { name: "Meta AI", query: "Meta Llama Llama 2 Llama 3 Llama 4 Galactica" },
-  { name: "Hugging Face", query: "Hugging Face Transformers Diffusers Datasets" },
+  { name: "OpenAI", queryVariants: ["OpenAI", "ChatGPT", "GPT-4", "GPT-5", "GPT-6", "DALL-E", "Whisper", "Codex"] },
+  { name: "Anthropic", queryVariants: ["Anthropic", "Claude 3", "Claude 4", "Claude 5"] },
+  { name: "Google AI", queryVariants: ["Google", "Gemini", "DeepMind", "Bard", "PaLM"] },
+  { name: "Microsoft AI", queryVariants: ["Microsoft", "Copilot", "Azure", "OpenAI", "Bing Chat"] },
+  { name: "Meta AI", queryVariants: ["Meta", "Llama", "Llama 2", "Llama 3", "Llama 4", "Galactica"] },
+  { name: "Hugging Face", queryVariants: ["Hugging Face", "Transformers", "Diffusers", "Datasets"] },
 
   // Other Major AI Companies / Startups
-  { name: "Mistral AI", query: "Mistral Mixtral" },
-  { name: "Cohere", query: "Cohere Command R" },
-  { name: "Perplexity", query: "Perplexity AI" },
-  { name: "xAI", query: "xAI Grok" },
-  { name: "Stability AI", query: "Stability AI Stable Diffusion SDXL MidJourney" },
-  { name: "Inflection AI", query: "Inflection Pi AI" },
-  { name: "Runway", query: "Runway AI video editing Gen-2" },
-  { name: "Claude Labs", query: "Claude Claude AI" },
-  { name: "Replit AI", query: "Replit Ghostwriter" },
-  { name: "MosaicML", query: "MosaicML models" },
-  { name: "AI21 Labs", query: "AI21 Studio Jurassic-2 Jurassic-1" },
+  { name: "Mistral AI", queryVariants: ["Mistral", "Mixtral"] },
+  { name: "Cohere", queryVariants: ["Cohere", "Command R"] },
+  { name: "Perplexity", queryVariants: ["Perplexity", "Perplexity AI"] },
+  { name: "xAI", queryVariants: ["xAI", "Grok"] },
+  { name: "Stability AI", queryVariants: ["Stability AI", "Stable Diffusion", "SDXL", "MidJourney"] },
+  { name: "Inflection AI", queryVariants: ["Inflection AI", "Pi AI"] },
+  { name: "Runway", queryVariants: ["Runway AI", "video editing", "Gen-2"] },
+  { name: "Claude Labs", queryVariants: ["Claude", "Claude AI"] },
+  { name: "Replit AI", queryVariants: ["Replit", "Ghostwriter"] },
+  { name: "MosaicML", queryVariants: ["MosaicML", "models"] },
+  { name: "AI21 Labs", queryVariants: ["AI21 Studio", "Jurassic-2", "Jurassic-1"] },
 
   // Infrastructure / Hardware
-  { name: "NVIDIA AI", query: "NVIDIA AI TensorRT NIM DGX H100" },
-  { name: "AMD AI", query: "AMD MI300 AI" },
-  { name: "Intel AI", query: "Intel AI Habana Gaudi" },
+  { name: "NVIDIA AI", queryVariants: ["NVIDIA AI", "TensorRT", "NIM", "DGX", "H100"] },
+  { name: "AMD AI", queryVariants: ["AMD AI", "MI300"] },
+  { name: "Intel AI", queryVariants: ["Intel AI", "Habana", "Gaudi"] },
 
   // Cloud AI Platforms
-  { name: "Amazon AI", query: "AWS Bedrock Amazon AI SageMaker" },
-  { name: "Google Cloud AI", query: "Vertex AI Google AI Cloud" },
-  { name: "Microsoft Azure AI", query: "Azure AI OpenAI Service Cognitive Services" },
+  { name: "Amazon AI", queryVariants: ["AWS", "Bedrock", "Amazon AI", "SageMaker"] },
+  { name: "Google Cloud AI", queryVariants: ["Vertex AI", "Google AI Cloud"] },
+  { name: "Microsoft Azure AI", queryVariants: ["Azure AI", "OpenAI Service", "Cognitive Services"] },
 
   // Emerging / Niche AI Startups
-  { name: "Character AI", query: "Character AI Chatbot personalities" },
-  { name: "Copy.ai", query: "Copy AI content writing" },
-  { name: "Jasper AI", query: "Jasper AI content marketing" },
-  { name: "Reimagine AI", query: "Reimagine AI image generation" },
-  { name: "Luminous AI", query: "Luminous AI models" }
+  { name: "Character AI", queryVariants: ["Character AI", "Chatbot", "personalities"] },
+  { name: "Copy.ai", queryVariants: ["Copy AI", "content writing"] },
+  { name: "Jasper AI", queryVariants: ["Jasper AI", "content marketing"] },
+  { name: "Reimagine AI", queryVariants: ["Reimagine AI", "image generation"] },
+  { name: "Luminous AI", queryVariants: ["Luminous AI", "models"] }
 ];
 
 // Keywords optimized for comprehensive AI news
@@ -240,10 +240,12 @@ function showLoadingSkeletons(desiredCount) {
 // API fetch + parse
 // ---------------------------
 
+// Build the Algolia API URL
 function buildTopicApiUrl(query) {
   return `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&hitsPerPage=100`;
 }
 
+// Extract and filter articles from Algolia hits
 function extractTopicItemsFromJson(hits, topicName) {
   const filtered = [];
 
@@ -256,6 +258,7 @@ function extractTopicItemsFromJson(hits, topicName) {
     const description = truncateText(normalizeWhitespace(stripHtml(rawDescription)), 260);
 
     const content = `${title} ${description}`.toLowerCase();
+
     const matchesKeyword =
       keywords.some((k) => content.includes(k)) ||
       content.includes("announce") ||
@@ -277,31 +280,62 @@ function extractTopicItemsFromJson(hits, topicName) {
   return filtered;
 }
 
+// ---------------------------
+// Fetch news for a topic using queryVariants (parallelized)
+// ---------------------------
 async function fetchTopicNews(topic) {
+  const allArticles = [];
   let lastError = null;
 
-  for (const queryVariant of [topic.query, `${topic.query} announcement`, `${topic.query} sunset`]) {
+  // Run all queryVariants in parallel
+  const variantPromises = (topic.queryVariants || []).map(async (queryVariant) => {
     try {
       const payload = await fetchJsonWithRetries(buildTopicApiUrl(queryVariant), 2);
       const articles = extractTopicItemsFromJson(payload?.hits, topic.name);
-      topicFailureCounts.delete(topic.name);
       return articles;
     } catch (err) {
       lastError = err;
+      return [];
+    }
+  });
+
+  // Wait for all queryVariants to finish
+  const results = await Promise.all(variantPromises);
+  results.forEach((articles) => allArticles.push(...articles));
+
+  if (allArticles.length === 0 && lastError) {
+    const failures = (topicFailureCounts.get(topic.name) || 0) + 1;
+    topicFailureCounts.set(topic.name, failures);
+    if (failures === 1 || failures % 5 === 0) {
+      const reason = lastError && lastError.message ? lastError.message : String(lastError || "Unknown error");
+      console.warn(`Skipping topic after retries (${topic.name}): ${reason}`);
     }
   }
 
-  const failures = (topicFailureCounts.get(topic.name) || 0) + 1;
-  topicFailureCounts.set(topic.name, failures);
-  if (failures === 1 || failures % 5 === 0) {
-    const reason = lastError && lastError.message ? lastError.message : String(lastError || "Unknown error");
-    console.warn(`Skipping topic after retries (${topic.name}): ${reason}`);
+  // Deduplicate articles by link + title
+  const seen = new Set();
+  const deduped = [];
+  for (const article of allArticles) {
+    const key = `${article.link || ""}::${(article.title || "").toLowerCase()}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(article);
+    }
   }
 
-  return [];
+  // Sort newest first
+  deduped.sort((a, b) => {
+    const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    return bDate - aDate;
+  });
+
+  return deduped;
 }
 
-// Fetch all topics with controlled concurrency to avoid request spikes
+// ---------------------------
+// Fetch all topics with controlled concurrency (unchanged)
+// ---------------------------
 async function fetchAllFeeds() {
   const concurrency = 4;
   const results = new Array(aiTopics.length);
@@ -322,8 +356,10 @@ async function fetchAllFeeds() {
 
   await Promise.all(workers);
 
+  // Merge all results
   const merged = results.flat();
 
+  // Deduplicate globally
   const seen = new Set();
   const deduped = [];
   for (const article of merged) {
@@ -334,7 +370,7 @@ async function fetchAllFeeds() {
     }
   }
 
-  // Sort newest first when we have a parseable date
+  // Sort newest first
   deduped.sort((a, b) => {
     const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
     const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
@@ -354,7 +390,7 @@ function renderNews(articles) {
 
   if (!articles.length) {
     setStatus(
-      "No relevant launch/deprecation news loaded right now. Try refreshing in a minute.",
+      "No relevant news found. Try refreshing in a minute.",
       "empty"
     );
     updateMetaInfo([]);
@@ -367,8 +403,8 @@ function renderNews(articles) {
     const card = document.createElement("article");
     card.className = "news-card";
 
-    const safeTitle = item.title.split("Show HN: ")[1] || item.title.split("Launch HN: ")[1] || item.title.split("Ask HN: ")[1] || item.title || "Untitled article";
-    const safeDescription = item.description || "";
+    const safeTitle = item.title.split("Show HN:")[1] || item.title.split("Tell HN:")[1] || item.title.split("Launch HN:")[1] || item.title.split("Ask HN:")[1] || item.title || "Untitled article";
+    const safeDescription = item.description.split("Show HN:")[1] || item.description.split("Tell HN:")[1] || item.description.split("Launch HN:")[1] || item.description.split("Ask HN:")[1] || item.description || "";
     const safeLink = item.link || "#";
     const safeSource = item.source || "Unknown source";
 
@@ -421,9 +457,9 @@ async function refreshFeeds(showSkeletons = true) {
 
   if (showSkeletons) {
     showLoadingSkeletons(aiTopics.length * 2);
-    setStatus("Loading latest AI launch & deprecation news…", "loading");
+    setStatus("Loading latest AI news…", "loading");
   } else {
-    setStatus("Refreshing AI launch & deprecation news…", "loading");
+    setStatus("Refreshing AI news…", "loading");
   }
 
   try {
@@ -454,7 +490,7 @@ async function refreshFeeds(showSkeletons = true) {
 async function initialize() {
   // First load: show skeletons based on topics, then fetch in parallel
   showLoadingSkeletons(aiTopics.length * 2);
-  setStatus("Loading latest AI launch & deprecation news…", "loading");
+  setStatus("Loading latest AI news…", "loading");
   await refreshFeeds(false);
 }
 
