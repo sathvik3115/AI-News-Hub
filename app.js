@@ -49,16 +49,16 @@ const aiTopics = [
 // Keywords optimized for comprehensive AI news
 const keywords = [
   // Core AI models & companies
-  "GPT", "GPT-4", "GPT-5", "Claude", "Claude 3", "Claude 4",
-  "Gemini", "DeepMind", "Copilot", "Llama", "Llama 3", "Llama 4",
-  "Transformers", "Mixtral", "Command R", "Grok", "Stable Diffusion",
-  "Pi AI", "TensorRT", "NIM", "MI300", "Bedrock", "Anthropic",
+  "GPT", "GPT-5", "Claude", "Claude Code", "Claude 4", "ChatGPT",
+  "Gemini", "DeepMind", "Copilot", "Llama", "Llama 4",
+  "Transformers", "Mixtral", "Mistral", "Command R", "Grok", "Stable Diffusion",
+  "Pi AI", "TensorRT", "NIM", "MI300", "Bedrock", "Anthropic", "Cuda",
   "OpenAI", "Google AI", "Microsoft AI", "Meta AI", "Hugging Face",
   "Mistral AI", "Cohere", "Perplexity", "xAI", "Stability AI", "Inflection AI",
-  "NVIDIA AI", "AMD AI", "Amazon AI", "AWS",
+  "NVIDIA AI", "NVIDIA", "AMD AI", "Amazon AI", "AWS", "Cursor", "Cursor AI",
 
   // AI general concepts
-  "AI", "artificial intelligence", "machine learning", "deep learning",
+  "AI", "Agents", "AI Agents", "artificial intelligence", "machine learning", "deep learning",
   "reinforcement learning", "unsupervised learning", "supervised learning",
   "neural network", "foundation model", "LLM", "large language model",
   "multimodal model", "chatbot", "text-to-image", "text-to-speech",
@@ -71,7 +71,7 @@ const keywords = [
   "AI writing assistant", "AI research", "AI optimization", "AI simulation",
   "self-supervised learning", "transfer learning", "reinforcement learning",
   "conversational AI", "AI adoption", "AI deployment", "AI ethics",
-  "AI safety", "AI alignment", "responsible AI", "AI governance", 
+  "AI safety", "AI alignment", "responsible AI", "AI governance", "AI Compliance",
   
   "cybersecurity", "cyber security", "AI security", "AI in cybersecurity", "adversarial attacks",
 
