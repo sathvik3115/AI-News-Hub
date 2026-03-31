@@ -458,6 +458,8 @@ async function refreshFeeds(showSkeletons = true) {
 
   if (refreshButton) {
     refreshButton.disabled = true;
+    const icon = refreshButton.querySelector("i");
+    if (icon) icon.classList.add("fa-spin");
   }
 
   if (showSkeletons) {
@@ -488,6 +490,8 @@ async function refreshFeeds(showSkeletons = true) {
     isRefreshing = false;
     if (refreshButton) {
       refreshButton.disabled = false;
+      const icon = refreshButton.querySelector("i");
+      if (icon) icon.classList.remove("fa-spin");
     }
   }
 }
@@ -525,6 +529,7 @@ if (searchInput) {
 // Manual refresh button to force a live update
 if (refreshButton) {
   refreshButton.addEventListener("click", () => {
+    if (searchInput) searchInput.value = "";
     refreshFeeds(true);
   });
 }
