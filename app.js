@@ -14,6 +14,7 @@ const aiTopics = [
   { name: "Microsoft AI", queryVariants: ["Microsoft", "Copilot", "Azure", "OpenAI", "Bing Chat"] },
   { name: "Meta AI", queryVariants: ["Meta", "Llama", "Llama 2", "Llama 3", "Llama 4", "Galactica"] },
   { name: "Hugging Face", queryVariants: ["Hugging Face", "Transformers", "Diffusers", "Datasets"] },
+  { name: "Cursor AI", queryVariants: ["Cursor AI", "code assistant", "programming AI"] },
 
   // Other Major AI Companies / Startups
   { name: "Mistral AI", queryVariants: ["Mistral", "Mixtral"] },
@@ -405,8 +406,10 @@ function renderNews(articles) {
     const card = document.createElement("article");
     card.className = "news-card";
 
-    const safeTitle = item.title.split("Show HN:")[1] || item.title.split("Tell HN:")[1] || item.title.split("Launch HN:")[1] || item.title.split("Ask HN:")[1] || item.title || "Untitled article";
-    const safeDescription = item.description.split("Show HN:")[1] || item.description.split("Tell HN:")[1] || item.description.split("Launch HN:")[1] || item.description.split("Ask HN:")[1] || item.description || "";
+    // const safeTitle = item.title.split("Show HN:")[1] || item.title.split("Tell HN:")[1] || item.title.split("Launch HN:")[1] || item.title.split("Ask HN:")[1] || item.title || "Untitled article";
+    // const safeDescription = item.description.split("Show HN:")[1] || item.description.split("Tell HN:")[1] || item.description.split("Launch HN:")[1] || item.description.split("Ask HN:")[1] || item.description || "";
+    const safeTitle = item.title || "Untitled article";
+    const safeDescription = item.description || "";
     const safeLink = item.link || "#";
     const safeSource = item.source || "Unknown source";
 

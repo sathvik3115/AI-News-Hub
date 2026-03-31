@@ -40,6 +40,53 @@ jobs:
           additional_permissions: |
             actions: read
 
+          custom_instructions: |
+            This is a static front-end project built with HTML, CSS, and vanilla JavaScript.
+
+            There is no backend, build step, or package manager involved.
+            All files can be opened directly in the browser via index.html.
+            If needed, use the mcp_playwright set of tools to launch a local server and test the app in a browser.
+
+            The project is already deployed and working in production.
+            Focus on improving code quality, UI/UX, responsiveness, accessibility, and performance.
+
+            When suggesting changes:
+            - Keep the implementation simple and framework-free
+            - Do not introduce unnecessary dependencies or build tools
+            - Ensure compatibility with modern browsers (Chrome, Edge, Firefox)
+            - Prefer clean, readable, and maintainable code
+
+            You may:
+            - Refactor HTML, CSS, and JavaScript
+            - Improve layout, styling, and responsiveness
+            - Fix bugs or edge cases
+            - Suggest small enhancements to user experience
+
+            Avoid:
+            - Adding Node.js, npm, or build pipelines unless explicitly requested
+            - Converting the project to frameworks like React, Vue, etc.
+
+            Assume the app can be tested by opening index.html in a browser.
+
+          mcp_config: |
+            {
+              "mcpServers": {
+                "playwright": {
+                  "type": "stdio",
+                  "command": "npx",
+                  "args": [
+                    "@playwright/mcp@latest",
+                    "--cdp-endpoint",
+                    "http://localhost:9222"
+                  ],
+                  "env": {}
+                }
+              }
+            }
+
+          allowed_tools: "Bash(npm:*),Bash(sqlite3:*),mcp__playwright__browser_take_screenshot,mcp__playwright__browser_snapshot,mcp__playwright__browser_click,mcp__playwright__browser_navigate,mcp__playwright__browser_fill_form,mcp__playwright__browser_wait_for,mcp__playwright__browser_type,mcp__playwright__browser_press_key,mcp__playwright__browser_evaluate,mcp__playwright__browser_network_requests,mcp__playwright__browser_tabs"
+            
+
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
 
